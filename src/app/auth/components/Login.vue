@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <div class="login columns col-gapless">
+    <div class="login columns">
       <div class="column col-5 hide-sm brand">
 
       </div>
