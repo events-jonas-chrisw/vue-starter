@@ -1,4 +1,4 @@
 module.exports = {
   NODE_ENV: '"production"',
-  API_URL: '"https://api.stenci.pro/site"',
+  API_URL: '"https://reqres.in/api"',
 };
