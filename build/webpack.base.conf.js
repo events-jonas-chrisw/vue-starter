@@ -1,8 +1,10 @@
 const path = require('path');
-const webpack = require('webpack');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const utils = require('./utils');
 const config = require('../config');
 const vueLoaderConfig = require('./vue-loader.conf');
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -16,9 +18,7 @@ module.exports = {
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js',
-    publicPath: process.env.NODE_ENV === 'production'
-      ? config.build.assetsPublicPath
-      : config.dev.assetsPublicPath
+    publicPath: isProduction ? config.build.assetsPublicPath : config.dev.assetsPublicPath
   },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
@@ -31,12 +31,6 @@ module.exports = {
       'components': resolve('src/components')
     }
   },
-  plugins: [
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jQuery: 'jquery'
-    })
-  ],
   module: {
     rules: [
       {
@@ -90,5 +84,8 @@ module.exports = {
     runtimeChunk: {
       name: 'manifest'
     }
-  }
+  },
+  plugins: [
+    new VueLoaderPlugin(),
+  ]
 };
