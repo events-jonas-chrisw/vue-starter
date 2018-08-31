@@ -30,26 +30,48 @@
     props: {
       date: Date,
       min: Date,
-      max: Date
+      max: Date,
+      highlights: {
+        type: Array,
+        default: []
+      }
     },
     data () {
       return {
         daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
         months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
         today: this.onlyDate(new Date()),
-        month: this.onlyDate(this.date || new Date(), true, true),
+        month: this.onlyDate(new Date(), true, true),
         days: [],
       }
     },
     mounted () {
+      this.setMonth(this.date || new Date());
       this.mount();
     },
+    watch: {
+      date (date) {
+        this.setMonth(date);
+        this.mount();
+      },
+      highlights () {
+        this.mount();
+      }
+    },
     methods: {
+      reset () {
+        this.month = this.onlyDate(this.date, true, true);
+        this.mount();
+      },
+      setMonth (date) {
+        this.month = this.onlyDate(date, true, true);
+      },
       next () {
         if (this.canNext) {
           this.month.setMonth(this.month.getMonth() + 1);
           this.month = new Date(this.month);
           this.mount();
+          this.emitMonthChange('next');
         }
       },
       prev () {
@@ -57,7 +79,15 @@
           this.month.setMonth(this.month.getMonth() - 1);
           this.month = new Date(this.month);
           this.mount();
+          this.emitMonthChange('prev');
         }
+      },
+      emitMonthChange (type) {
+        this.$emit('month-change', {
+          type: type,
+          date: this.month,
+          dateISO: this.format(this.month)
+        });
       },
       select (item) {
         const data = Object.assign({}, item);
@@ -77,11 +107,14 @@
         let day;
 
         do {
+          calendar.setHours(0);
+
           day = {
             ctrl: {
               isEnabled: this.isEnabled(calendar),
               isActiveMonth: calendar.getMonth() === currMonth,
-              month: 'current'
+              isHighlight: this.isHighlight(calendar),
+              month: 'current',
             },
             weekDay: calendar.getDay(),
             day: calendar.getDate(),
@@ -113,6 +146,9 @@
       },
       onlyDate (date, asNew = false, resetDay = false) {
         if (asNew) {
+          if (typeof date === 'string' && date.length === 10) {
+            date += 'T00:00';
+          }
           date = new Date(date);
         }
 
@@ -129,6 +165,9 @@
       },
       isToday (date) {
         return this.today.getTime() === date.getTime();
+      },
+      isHighlight (date) {
+        return this.highlights.some(highlight => this.onlyDate(highlight, true).getTime() === date.getTime());
       },
       isEnabled (date) {
         let enabled = true;
@@ -153,6 +192,7 @@
       dayClasses (day) {
         return {
           disabled: day.ctrl.isEnabled === false || !day.ctrl.isActiveMonth,
+          highlight: day.ctrl.isHighlight,
           [day.ctrl.month + '-month']: true
         }
       }
@@ -180,8 +220,17 @@
 </script>
 
 <style lang="scss">
+  @import '~assets/scss/variables';
+
   .calendar-body {
     background-color: #fff;
+    .highlight {
+      .date-item, .date-item.date-today {
+        background-color: $secondary-color;
+        border-color: $primary-color-light;
+        color: $gray-color-dark;
+      }
+    }
     .date-item {
       text-align: center;
     }
